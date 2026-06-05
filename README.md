@@ -176,5 +176,3 @@ DATABASES = {
 - Factures PDF générées automatiquement via ReportLab
 
 ---
-
-*Projet réalisé à Brazzaville, Congo — Licence MIT*
