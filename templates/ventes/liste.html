@@ -1,0 +1,51 @@
+{% extends 'base/base.html' %}
+{% block title %}Ventes{% endblock %}
+{% block page_title %}Gestion des Ventes{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h5 class="fw-bold">Liste des ventes</h5>
+  <a href="{% url 'ventes:nouvelle' %}" class="btn btn-primary"><i class="bi bi-cart-plus me-1"></i>Nouvelle vente</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="d-flex gap-2">
+      <select name="statut" class="form-select form-select-sm" style="width:auto">
+        <option value="">Tous les statuts</option>
+        <option value="brouillon" {% if statut == 'brouillon' %}selected{% endif %}>Brouillon</option>
+        <option value="confirmee" {% if statut == 'confirmee' %}selected{% endif %}>Confirmée</option>
+        <option value="livree" {% if statut == 'livree' %}selected{% endif %}>Livrée</option>
+        <option value="annulee" {% if statut == 'annulee' %}selected{% endif %}>Annulée</option>
+      </select>
+      <button type="submit" class="btn btn-sm btn-outline-primary">Filtrer</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Numéro</th><th>Date</th><th>Client</th><th>Mode paiement</th><th>Total</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for v in ventes %}
+        <tr>
+          <td><code class="text-primary">{{ v.numero }}</code></td>
+          <td>{{ v.date|date:"d/m/Y H:i" }}</td>
+          <td>{{ v.client.nom|default:"Client comptant" }}</td>
+          <td><span class="badge bg-secondary">{{ v.get_mode_paiement_display }}</span></td>
+          <td class="fw-semibold">{{ v.total|floatformat:0 }} FCFA</td>
+          <td><span class="badge status-{{ v.statut }}">{{ v.get_statut_display }}</span></td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'ventes:detail' v.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2"><i class="bi bi-eye"></i></a>
+              {% if not v.facture %}<a href="{% url 'factures:creer' v.pk %}" class="btn btn-sm btn-outline-success py-0 px-2" title="Facturer"><i class="bi bi-receipt"></i></a>{% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="7" class="text-center text-muted py-5">Aucune vente</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

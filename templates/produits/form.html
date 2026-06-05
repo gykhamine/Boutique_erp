@@ -1,0 +1,133 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ titre }}{% endblock %}
+{% block page_title %}{{ titre }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-box-seam me-2"></i>{{ titre }}</h6>
+        <a href="{% url 'produits:ajouter_categorie' %}" class="btn btn-outline-secondary btn-sm" target="_blank">
+          <i class="bi bi-plus-lg me-1"></i>Nouvelle catégorie
+        </a>
+      </div>
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="row g-3">
+
+            <!-- Référence & Nom -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Référence <span class="text-danger">*</span></label>
+              {{ form.reference }}
+              {% if form.reference.errors %}<div class="text-danger small mt-1">{{ form.reference.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Nom du produit <span class="text-danger">*</span></label>
+              {{ form.nom }}
+              {% if form.nom.errors %}<div class="text-danger small mt-1">{{ form.nom.errors.0 }}</div>{% endif %}
+            </div>
+
+            <!-- Catégorie + Unité + TVA -->
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Catégorie</label>
+              {{ form.categorie }}
+              {% if form.categorie.errors %}<div class="text-danger small mt-1">{{ form.categorie.errors.0 }}</div>{% endif %}
+              {% if not form.categorie.field.queryset.exists %}
+              <div class="form-text text-warning">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Aucune catégorie — <a href="{% url 'produits:ajouter_categorie' %}" target="_blank">en créer une d'abord</a>
+              </div>
+              {% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Unité</label>
+              {{ form.unite }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">TVA (%)</label>
+              {{ form.tva }}
+            </div>
+
+            <!-- Description -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              {{ form.description }}
+            </div>
+
+            <!-- Prix -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Prix d'achat (FCFA)</label>
+              {{ form.prix_achat }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Prix de vente (FCFA)</label>
+              {{ form.prix_vente }}
+            </div>
+            <div class="col-md-4">
+              <div class="p-3 rounded" style="background:#f0f4f8">
+                <div class="text-muted small">Marge estimée</div>
+                <div class="fw-bold text-primary" id="margePreview">—</div>
+              </div>
+            </div>
+
+            <!-- Stock -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Stock actuel</label>
+              {{ form.stock_actuel }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Stock minimum</label>
+              {{ form.stock_minimum }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Image</label>
+              {{ form.image }}
+            </div>
+            <div class="col-md-2 d-flex align-items-end pb-1">
+              <div class="form-check">
+                {{ form.actif }}
+                <label class="form-check-label fw-semibold">Actif</label>
+              </div>
+            </div>
+
+          </div>
+
+          <hr class="my-4">
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>Enregistrer
+            </button>
+            <a href="{% url 'produits:liste' %}" class="btn btn-outline-secondary">Annuler</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function calcMarge() {
+  const achat = parseFloat(document.querySelector('[name="prix_achat"]').value) || 0;
+  const vente = parseFloat(document.querySelector('[name="prix_vente"]').value) || 0;
+  const el = document.getElementById('margePreview');
+  if (achat > 0 && vente > 0) {
+    const m = ((vente - achat) / achat * 100).toFixed(1);
+    el.textContent = m + '%';
+    el.style.color = m >= 20 ? '#27ae60' : m >= 10 ? '#e67e22' : '#e74c3c';
+  } else {
+    el.textContent = '—';
+  }
+}
+document.querySelector('[name="prix_achat"]').addEventListener('input', calcMarge);
+document.querySelector('[name="prix_vente"]').addEventListener('input', calcMarge);
+calcMarge();
+</script>
+{% endblock %}

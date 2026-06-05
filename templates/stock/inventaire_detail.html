@@ -1,0 +1,41 @@
+{% extends 'base/base.html' %}
+{% block title %}Inventaire {{ inv.reference }}{% endblock %}
+{% block page_title %}Inventaire{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-4">
+  <h5 class="fw-bold">Inventaire <code>{{ inv.reference }}</code></h5>
+  <span class="badge bg-{% if inv.statut == 'valide' %}success{% else %}warning text-dark{% endif %} fs-6">{{ inv.get_statut_display }}</span>
+</div>
+<div class="card">
+  <form method="post">{% csrf_token %}
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>Produit</th><th>Stock théorique</th><th>Stock réel</th><th>Écart</th></tr></thead>
+        <tbody>
+          {% for l in inv.lignes.all %}
+          <tr>
+            <td>{{ l.produit.nom }}</td>
+            <td>{{ l.stock_theorique }}</td>
+            <td>
+              {% if inv.statut == 'en_cours' %}
+              <input type="number" name="reel_{{ l.pk }}" value="{{ l.stock_reel }}" class="form-control form-control-sm" style="width:80px">
+              {% else %}{{ l.stock_reel }}{% endif %}
+            </td>
+            <td class="fw-semibold {% if l.ecart < 0 %}text-danger{% elif l.ecart > 0 %}text-success{% endif %}">
+              {% if l.ecart > 0 %}+{% endif %}{{ l.ecart }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if inv.statut == 'en_cours' %}
+    <div class="p-4">
+      <button type="submit" class="btn btn-success" onclick="return confirm('Valider et appliquer les corrections de stock ?')">
+        <i class="bi bi-check-lg me-1"></i>Valider l'inventaire
+      </button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

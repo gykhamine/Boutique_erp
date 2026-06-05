@@ -1,0 +1,85 @@
+{% extends 'base/base.html' %}
+{% block title %}Produits{% endblock %}
+{% block page_title %}Gestion des Produits{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h5 class="mb-1 fw-bold">Catalogue produits</h5>
+    <p class="text-muted mb-0" style="font-size:.875rem">{{ produits.count }} produit(s) actif(s)</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'produits:exporter' %}" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a>
+    <a href="{% url 'produits:categories' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-tags me-1"></i>Catégories</a>
+    <a href="{% url 'produits:ajouter' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Ajouter</a>
+  </div>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2">
+      <div class="col-md-6">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="🔍 Rechercher par nom, référence...">
+      </div>
+      <div class="col-md-4">
+        <select name="categorie" class="form-select">
+          <option value="">Toutes les catégories</option>
+          {% for c in categories %}<option value="{{ c.pk }}" {% if cat_sel == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.nom }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Filtrer</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- Tableau -->
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>QR</th><th>Référence</th><th>Produit</th><th>Catégorie</th>
+          <th>P. Achat</th><th>P. Vente</th><th>Marge</th><th>Stock</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in produits %}
+        <tr {% if p.en_rupture %}class="table-danger"{% endif %}>
+          <td>
+            {% if p.qr_code %}
+            <img src="{{ p.qr_code.url }}" width="36" height="36" style="border-radius:4px" title="{{ p.reference }}">
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+          <td><code class="text-primary">{{ p.reference }}</code></td>
+          <td>
+            <div class="fw-semibold">{{ p.nom }}</div>
+            {% if p.en_rupture %}<span class="badge bg-danger" style="font-size:.65rem">RUPTURE</span>{% endif %}
+          </td>
+          <td>{{ p.categorie|default:"—" }}</td>
+          <td>{{ p.prix_achat|floatformat:0 }} FCFA</td>
+          <td class="fw-semibold">{{ p.prix_vente|floatformat:0 }} FCFA</td>
+          <td>
+            <span class="badge {% if p.marge >= 20 %}bg-success{% elif p.marge >= 10 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+              {{ p.marge }}%
+            </span>
+          </td>
+          <td>
+            <span class="fw-semibold {% if p.en_rupture %}text-danger{% endif %}">{{ p.stock_actuel }}</span>
+            <span class="text-muted" style="font-size:.75rem">/ min {{ p.stock_minimum }}</span>
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'produits:detail' p.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2"><i class="bi bi-eye"></i></a>
+              <a href="{% url 'produits:modifier' p.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-pencil"></i></a>
+              <a href="{% url 'produits:supprimer' p.pk %}" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('Archiver ce produit ?')"><i class="bi bi-archive"></i></a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted py-5"><i class="bi bi-box fs-1 d-block mb-2"></i>Aucun produit trouvé</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

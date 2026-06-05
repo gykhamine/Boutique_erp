@@ -1,0 +1,30 @@
+{% extends 'base/base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-4">
+  <h5 class="fw-bold">Notifications</h5>
+  <a href="{% url 'notifications:tout_lire' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-check2-all me-1"></i>Tout marquer lu</a>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    {% for n in notifs %}
+    <div class="d-flex align-items-start p-4 border-bottom {% if not n.lue %}bg-light{% endif %}">
+      <div class="me-3 mt-1">
+        <span class="badge rounded-pill bg-{% if n.type_notif == 'alerte' %}danger{% elif n.type_notif == 'succes' %}success{% elif n.type_notif == 'erreur' %}danger{% else %}primary{% endif %}" style="width:10px;height:10px;display:inline-block;padding:5px"></span>
+      </div>
+      <div class="flex-grow-1">
+        <div class="fw-semibold {% if not n.lue %}text-dark{% else %}text-muted{% endif %}">{{ n.titre }}</div>
+        <div class="text-muted" style="font-size:.875rem">{{ n.message }}</div>
+        <div class="text-muted mt-1" style="font-size:.75rem">{{ n.cree_le|date:"d/m/Y H:i" }}</div>
+      </div>
+      {% if not n.lue %}
+      <a href="{% url 'notifications:lue' n.pk %}" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-2"><i class="bi bi-check"></i></a>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="text-center py-5 text-muted"><i class="bi bi-bell-slash fs-1 d-block mb-3"></i>Aucune notification</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

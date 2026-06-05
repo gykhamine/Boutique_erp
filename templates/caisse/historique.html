@@ -1,0 +1,25 @@
+{% extends 'base/base.html' %}
+{% block title %}Historique caisse{% endblock %}
+{% block page_title %}Historique des sessions{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Ouverture</th><th>Fermeture</th><th>Fond initial</th><th>Entrées</th><th>Sorties</th><th>Solde théorique</th><th>Fond réel</th></tr></thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr>
+          <td>{{ s.ouverture|date:"d/m/Y H:i" }}</td>
+          <td>{{ s.fermeture|date:"d/m/Y H:i"|default:"En cours" }}</td>
+          <td>{{ s.fond_ouverture|floatformat:0 }} FCFA</td>
+          <td class="text-success">+{{ s.total_entrees|floatformat:0 }} FCFA</td>
+          <td class="text-danger">-{{ s.total_sorties|floatformat:0 }} FCFA</td>
+          <td class="fw-semibold">{{ s.solde_theorique|floatformat:0 }} FCFA</td>
+          <td>{{ s.fond_fermeture|floatformat:0 }} FCFA</td>
+        </tr>
+        {% empty %}<tr><td colspan="7" class="text-center text-muted py-4">Aucune session</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

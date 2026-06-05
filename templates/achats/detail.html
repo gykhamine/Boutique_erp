@@ -1,0 +1,39 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ cmd.numero }}{% endblock %}
+{% block page_title %}Commande achat{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-4">
+  <h5 class="fw-bold">Commande <code>{{ cmd.numero }}</code></h5>
+  <div class="d-flex gap-2">
+    {% if cmd.statut == 'envoyee' %}
+    <a href="{% url 'achats:recevoir' cmd.pk %}" class="btn btn-success btn-sm" onclick="return confirm('Confirmer réception et mise à jour du stock ?')"><i class="bi bi-check-lg me-1"></i>Réceptionner</a>
+    {% endif %}
+    <a href="{% url 'achats:liste' %}" class="btn btn-outline-secondary btn-sm">← Retour</a>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card"><div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>Produit</th><th>Quantité</th><th>Prix unit.</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for l in cmd.lignes.all %}
+          <tr>
+            <td>{{ l.produit.nom }}</td><td>{{ l.quantite }}</td>
+            <td>{{ l.prix_unitaire|floatformat:0 }} FCFA</td>
+            <td class="fw-semibold">{{ l.total_ligne|floatformat:0 }} FCFA</td>
+          </tr>
+          {% endfor %}
+          <tr class="table-light"><td colspan="3" class="text-end fw-bold">TOTAL</td><td class="fw-bold text-primary">{{ cmd.total|floatformat:0 }} FCFA</td></tr>
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+  <div class="col-lg-4"><div class="card"><div class="card-body p-4">
+    <div class="mb-3"><div class="text-muted small">Fournisseur</div><div class="fw-semibold">{{ cmd.fournisseur.nom }}</div></div>
+    <div class="mb-3"><div class="text-muted small">Statut</div><span class="badge bg-primary">{{ cmd.get_statut_display }}</span></div>
+    <div class="mb-3"><div class="text-muted small">Date</div><div>{{ cmd.date|date:"d/m/Y" }}</div></div>
+    {% if cmd.date_livraison_prevue %}<div class="mb-3"><div class="text-muted small">Livraison prévue</div><div>{{ cmd.date_livraison_prevue|date:"d/m/Y" }}</div></div>{% endif %}
+  </div></div></div>
+</div>
+{% endblock %}

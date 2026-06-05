@@ -1,0 +1,107 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ produit.nom }}{% endblock %}
+{% block page_title %}Détail produit{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body text-center p-4">
+        {% if produit.image %}
+        <img src="{{ produit.image.url }}" class="img-fluid rounded mb-3" style="max-height:200px">
+        {% else %}
+        <div style="height:120px;background:#f0f4f8;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+          <i class="bi bi-box-seam text-muted" style="font-size:3rem"></i>
+        </div>
+        {% endif %}
+        <h5 class="fw-bold">{{ produit.nom }}</h5>
+        <code class="text-primary fs-6">{{ produit.reference }}</code>
+        {% if produit.en_rupture %}<div class="badge bg-danger mt-2">⚠ Rupture de stock</div>{% endif %}
+      </div>
+    </div>
+
+    <!-- QR Code -->
+    <div class="card mt-3">
+      <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-qr-code me-2"></i>QR Code</h6>
+        <a href="{% url 'produits:qr' produit.pk %}" class="btn btn-sm btn-outline-primary">Régénérer</a>
+      </div>
+      <div class="card-body text-center p-3">
+        {% if produit.qr_code %}
+        <img src="{{ produit.qr_code.url }}" style="width:160px;height:160px">
+        <div class="text-muted mt-2" style="font-size:.75rem">REF: {{ produit.reference }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header py-3 px-4 d-flex justify-content-between">
+        <h6 class="mb-0 fw-semibold">Informations</h6>
+        <a href="{% url 'produits:modifier' produit.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Modifier</a>
+      </div>
+      <div class="card-body p-4">
+        <div class="row g-3">
+          {% with items=produit %}
+          <div class="col-md-6">
+            <div class="p-3 rounded" style="background:#f8fafc">
+              <div style="font-size:.75rem;color:#7f8c8d;margin-bottom:2px">Catégorie</div>
+              <div class="fw-semibold">{{ produit.categorie|default:"Sans catégorie" }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 rounded" style="background:#f8fafc">
+              <div style="font-size:.75rem;color:#7f8c8d;margin-bottom:2px">Unité</div>
+              <div class="fw-semibold">{{ produit.get_unite_display }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 rounded" style="background:#e8f5e9">
+              <div style="font-size:.75rem;color:#7f8c8d;margin-bottom:2px">Prix d'achat</div>
+              <div class="fw-bold text-success">{{ produit.prix_achat|floatformat:0 }} FCFA</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 rounded" style="background:#e3f2fd">
+              <div style="font-size:.75rem;color:#7f8c8d;margin-bottom:2px">Prix de vente</div>
+              <div class="fw-bold text-primary">{{ produit.prix_vente|floatformat:0 }} FCFA</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 rounded" style="background:#fff3e0">
+              <div style="font-size:.75rem;color:#7f8c8d;margin-bottom:2px">Marge</div>
+              <div class="fw-bold text-warning">{{ produit.marge }}%</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 rounded" style="background:#{% if produit.en_rupture %}fce4ec{% else %}f8fafc{% endif %}">
+              <div style="font-size:.75rem;color:#7f8c8d;margin-bottom:2px">Stock actuel</div>
+              <div class="fw-bold {% if produit.en_rupture %}text-danger{% endif %}">{{ produit.stock_actuel }} {{ produit.unite }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 rounded" style="background:#f8fafc">
+              <div style="font-size:.75rem;color:#7f8c8d;margin-bottom:2px">Stock minimum</div>
+              <div class="fw-semibold">{{ produit.stock_minimum }} {{ produit.unite }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 rounded" style="background:#f8fafc">
+              <div style="font-size:.75rem;color:#7f8c8d;margin-bottom:2px">Valeur stock</div>
+              <div class="fw-bold">{{ produit.valeur_stock|floatformat:0 }} FCFA</div>
+            </div>
+          </div>
+          {% endwith %}
+          {% if produit.description %}
+          <div class="col-12">
+            <label class="text-muted" style="font-size:.8rem">Description</label>
+            <p class="mt-1">{{ produit.description }}</p>
+          </div>
+          {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

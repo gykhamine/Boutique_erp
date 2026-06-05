@@ -1,0 +1,40 @@
+{% extends 'base/base.html' %}
+{% block title %}Facture {{ facture.numero }}{% endblock %}
+{% block page_title %}Facture{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-4">
+  <h5 class="fw-bold">Facture <code>{{ facture.numero }}</code></h5>
+  <div class="d-flex gap-2">
+    <a href="{% url 'factures:pdf' facture.pk %}" class="btn btn-success btn-sm"><i class="bi bi-file-pdf me-1"></i>Télécharger PDF</a>
+    <a href="{% url 'factures:regenerer' facture.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>Régénérer</a>
+    <a href="{% url 'factures:liste' %}" class="btn btn-outline-secondary btn-sm">← Retour</a>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card"><div class="card-body p-4">
+      <div class="d-flex justify-content-between mb-4">
+        <div><h4 class="text-primary fw-bold">FACTURE</h4><div class="text-muted">N° {{ facture.numero }}</div></div>
+        <div class="text-end"><div class="text-muted small">Date d'émission</div><div class="fw-semibold">{{ facture.date_emission|date:"d/m/Y" }}</div></div>
+      </div>
+      <div class="table-responsive">
+        <table class="table"><thead><tr><th>Produit</th><th>Qté</th><th>P.U.</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for l in facture.vente.lignes.all %}
+          <tr><td>{{ l.produit.nom }}</td><td>{{ l.quantite }}</td><td>{{ l.prix_unitaire|floatformat:0 }} FCFA</td><td>{{ l.total_ligne|floatformat:0 }} FCFA</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr class="table-light"><td colspan="3" class="text-end fw-bold">TOTAL TTC</td><td class="fw-bold text-primary">{{ facture.vente.total|floatformat:0 }} FCFA</td></tr>
+        </tfoot></table>
+      </div>
+    </div></div>
+  </div>
+  <div class="col-lg-4"><div class="card"><div class="card-body p-4">
+    <div class="mb-3"><div class="text-muted small">Statut</div><span class="badge bg-primary fs-6">{{ facture.get_statut_display }}</span></div>
+    <div class="mb-3"><div class="text-muted small">Client</div><div class="fw-semibold">{{ facture.vente.client.nom|default:"Comptant" }}</div></div>
+    <div class="mb-3"><div class="text-muted small">Mode paiement</div><div>{{ facture.vente.get_mode_paiement_display }}</div></div>
+    <div class="mb-3"><div class="text-muted small">Montant</div><div class="fw-bold fs-5 text-primary">{{ facture.vente.total|floatformat:0 }} FCFA</div></div>
+  </div></div></div>
+</div>
+{% endblock %}

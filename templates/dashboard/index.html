@@ -1,0 +1,169 @@
+{% extends 'base/base.html' %}
+{% block title %}Tableau de bord — Boutique ERP{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block extra_css %}
+<style>
+.kpi-blue { background: linear-gradient(135deg, #1a3c5e, #2980b9); }
+.kpi-orange { background: linear-gradient(135deg, #e67e22, #f39c12); }
+.kpi-green { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+.kpi-red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+.chart-bar { background: #1a3c5e; border-radius: 4px 4px 0 0; display: inline-block; width: 100%; transition: height .4s; min-height: 2px; }
+.chart-col { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.rupture-row td { color: #e74c3c; font-weight: 500; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <!-- KPI Cards -->
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
+      <div class="kpi-value">{{ ca_jour|floatformat:0 }} <small style="font-size:.9rem">FCFA</small></div>
+      <div class="kpi-label">CA aujourd'hui</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="kpi-value">{{ ca_mois|floatformat:0 }} <small style="font-size:.9rem">FCFA</small></div>
+      <div class="kpi-label">CA ce mois</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card kpi-green">
+      <div class="kpi-icon"><i class="bi bi-cart-check"></i></div>
+      <div class="kpi-value">{{ nb_ventes_jour }}</div>
+      <div class="kpi-label">Ventes aujourd'hui</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card kpi-red">
+      <div class="kpi-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="kpi-value">{{ nb_ruptures }}</div>
+      <div class="kpi-label">Produits en alerte</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Mini graphique ventes 7 jours -->
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between py-3 px-4">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-bar-chart me-2 text-primary"></i>Ventes — 7 derniers jours</h6>
+        <a href="{% url 'rapports:dashboard' %}" class="btn btn-sm btn-outline-primary">Voir plus</a>
+      </div>
+      <div class="card-body px-4 pt-3">
+        <div id="miniChart" style="display:flex;align-items:flex-end;height:160px;gap:6px;padding-bottom:24px;position:relative">
+          {% for v in ventes_7j %}
+          <div class="chart-col" title="{{ v.date }}: {{ v.total|floatformat:0 }} FCFA">
+            <div class="chart-bar" id="bar_{{ forloop.counter }}" style="height:4px" data-val="{{ v.total }}"></div>
+            <div style="font-size:.65rem;color:#7f8c8d;margin-top:4px;white-space:nowrap">{{ v.date }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Raccourcis -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header py-3 px-4"><h6 class="mb-0 fw-semibold"><i class="bi bi-lightning-fill me-2 text-warning"></i>Accès rapide</h6></div>
+      <div class="card-body p-3">
+        <div class="d-grid gap-2">
+          <a href="{% url 'ventes:nouvelle' %}" class="btn btn-primary"><i class="bi bi-cart-plus me-2"></i>Nouvelle vente</a>
+          <a href="{% url 'produits:ajouter' %}" class="btn btn-outline-primary"><i class="bi bi-plus-circle me-2"></i>Ajouter produit</a>
+          <a href="{% url 'clients:ajouter' %}" class="btn btn-outline-success"><i class="bi bi-person-plus me-2"></i>Nouveau client</a>
+          <a href="{% url 'stock:ajuster' %}" class="btn btn-outline-warning"><i class="bi bi-arrow-repeat me-2"></i>Ajuster stock</a>
+          <a href="{% url 'rapports:excel' %}" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-excel me-2"></i>Exporter Excel</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Dernières ventes -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center py-3 px-4">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-receipt me-2 text-success"></i>Dernières ventes</h6>
+        <a href="{% url 'ventes:liste' %}" class="btn btn-sm btn-outline-success">Voir toutes</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>N°</th><th>Client</th><th>Total</th><th>Mode</th><th>Statut</th><th></th></tr></thead>
+          <tbody>
+            {% for v in ventes_recentes %}
+            <tr>
+              <td><code>{{ v.numero }}</code></td>
+              <td>{{ v.client.nom|default:"Comptant" }}</td>
+              <td class="fw-semibold">{{ v.total|floatformat:0 }} FCFA</td>
+              <td><span class="badge bg-secondary">{{ v.get_mode_paiement_display }}</span></td>
+              <td><span class="badge status-{{ v.statut }}">{{ v.get_statut_display }}</span></td>
+              <td><a href="{% url 'ventes:detail' v.pk %}" class="btn btn-xs btn-outline-primary btn-sm py-0 px-2"><i class="bi bi-eye"></i></a></td>
+            </tr>
+            {% empty %}<tr><td colspan="6" class="text-center text-muted py-4">Aucune vente</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertes stock -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header py-3 px-4">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-exclamation-triangle me-2 text-danger"></i>Alertes stock</h6>
+      </div>
+      <div class="card-body p-0">
+        {% for p in produits_rupture %}
+        <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+          <div>
+            <div style="font-size:.875rem;font-weight:500">{{ p.nom|truncatechars:25 }}</div>
+            <div style="font-size:.75rem;color:#e74c3c">Stock: {{ p.stock_actuel }} / Min: {{ p.stock_minimum }}</div>
+          </div>
+          <a href="{% url 'stock:ajuster' %}" class="btn btn-sm btn-outline-danger py-0 px-2"><i class="bi bi-plus"></i></a>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-4"><i class="bi bi-check-circle-fill text-success fs-3"></i><div class="mt-2">Tous les stocks sont OK</div></div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if taches_urgentes %}
+    <div class="card mt-3">
+      <div class="card-header py-3 px-4"><h6 class="mb-0 fw-semibold"><i class="bi bi-kanban me-2 text-danger"></i>Tâches urgentes</h6></div>
+      <div class="card-body p-0">
+        {% for t in taches_urgentes %}
+        <div class="px-4 py-2 border-bottom">
+          <div style="font-size:.875rem;font-weight:500">{{ t.titre|truncatechars:30 }}</div>
+          <div style="font-size:.75rem;color:#7f8c8d">{% if t.assigne_a %}→ {{ t.assigne_a.username }}{% endif %}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animated bar chart
+document.addEventListener('DOMContentLoaded', () => {
+  const bars = document.querySelectorAll('.chart-bar');
+  const vals = Array.from(bars).map(b => parseFloat(b.dataset.val) || 0);
+  const maxVal = Math.max(...vals, 1);
+  const maxH = 130;
+  bars.forEach((bar, i) => {
+    const h = Math.max(((vals[i] / maxVal) * maxH), 3);
+    setTimeout(() => { bar.style.height = h + 'px'; }, 100 + i * 60);
+  });
+});
+</script>
+{% endblock %}

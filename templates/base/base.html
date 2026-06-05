@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Boutique ERP{% endblock %}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a3c5e;
+    --primary-light: #2980b9;
+    --accent: #e67e22;
+    --success: #27ae60;
+    --danger: #e74c3c;
+    --sidebar-w: 260px;
+    --topbar-h: 60px;
+    --bg: #f0f4f8;
+    --card-bg: #ffffff;
+    --text: #2c3e50;
+    --text-muted: #7f8c8d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    width: var(--sidebar-w); background: var(--primary); color: #fff;
+    position: fixed; top: 0; left: 0; height: 100vh; display: flex; flex-direction: column;
+    z-index: 1000; transition: transform 0.3s;
+    box-shadow: 4px 0 20px rgba(0,0,0,.15);
+  }
+  .sidebar-brand {
+    padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,.1);
+    font-size: 1.1rem; font-weight: 700; letter-spacing: .5px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sidebar-brand .brand-icon {
+    width: 36px; height: 36px; background: var(--accent); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+  }
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+  .nav-section { padding: 8px 16px 4px; font-size: .65rem; text-transform: uppercase;
+    letter-spacing: 1.5px; color: rgba(255,255,255,.4); font-weight: 600; }
+  .nav-item a {
+    display: flex; align-items: center; gap: 10px; padding: 9px 20px;
+    color: rgba(255,255,255,.8); text-decoration: none; font-size: .875rem;
+    border-left: 3px solid transparent; transition: all .15s;
+  }
+  .nav-item a:hover, .nav-item a.active {
+    background: rgba(255,255,255,.08); color: #fff; border-left-color: var(--accent);
+  }
+  .nav-item a i { width: 18px; text-align: center; font-size: 1rem; }
+  .sidebar-footer { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,.1); font-size: .8rem; }
+
+  /* Topbar */
+  .topbar {
+    position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: var(--topbar-h);
+    background: var(--card-bg); border-bottom: 1px solid #e0e8f0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; z-index: 900; box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  }
+  .topbar-title { font-size: 1.1rem; font-weight: 600; color: var(--primary); }
+  .topbar-actions { display: flex; align-items: center; gap: 14px; }
+  .notif-badge { position: relative; }
+  .notif-badge .badge-count {
+    position: absolute; top: -4px; right: -6px; background: var(--danger);
+    color: #fff; font-size: .65rem; border-radius: 10px; padding: 1px 5px;
+    font-weight: 700; min-width: 18px; text-align: center;
+  }
+  .topbar-icon { color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: color .15s; }
+  .topbar-icon:hover { color: var(--primary); }
+
+  /* Main */
+  .main-content { margin-left: var(--sidebar-w); margin-top: var(--topbar-h); flex: 1; padding: 24px; min-height: calc(100vh - var(--topbar-h)); }
+
+  /* Cards */
+  .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+  .card-header { border-radius: 12px 12px 0 0 !important; border-bottom: 1px solid #eef2f7; background: var(--card-bg); }
+
+  /* KPI Cards */
+  .kpi-card { border-radius: 12px; padding: 20px; color: #fff; position: relative; overflow: hidden; }
+  .kpi-card::after { content: ''; position: absolute; bottom: -20px; right: -20px;
+    width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,.1); }
+  .kpi-card .kpi-icon { font-size: 2rem; opacity: .85; }
+  .kpi-card .kpi-value { font-size: 1.6rem; font-weight: 700; margin: 6px 0 2px; }
+  .kpi-card .kpi-label { font-size: .8rem; opacity: .85; }
+
+  /* Table */
+  .table thead th { background: #f8fafc; font-weight: 600; font-size: .8rem;
+    text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); border: none; }
+  .table td { border-color: #f0f4f8; vertical-align: middle; font-size: .9rem; }
+  .table-hover tbody tr:hover { background: #f8fafc; }
+
+  /* Badges */
+  .badge { font-size: .72rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+
+  /* Buttons */
+  .btn { border-radius: 8px; font-weight: 500; font-size: .875rem; }
+  .btn-primary { background: var(--primary); border-color: var(--primary); }
+  .btn-primary:hover { background: #15324f; border-color: #15324f; }
+
+  /* Forms */
+  .form-control, .form-select { border-radius: 8px; border-color: #dde4ee; font-size: .9rem; }
+  .form-control:focus, .form-select:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(41,128,185,.1); }
+  .form-label { font-weight: 500; font-size: .875rem; color: var(--text); }
+
+  /* Alerts */
+  .alert { border-radius: 10px; border: none; }
+
+  /* Status badges */
+  .status-brouillon { background: #e8eaf6; color: #3949ab; }
+  .status-confirmee { background: #e8f5e9; color: #2e7d32; }
+  .status-livree { background: #e0f2f1; color: #00695c; }
+  .status-annulee { background: #fce4ec; color: #c62828; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: #f0f4f8; }
+  ::-webkit-scrollbar-thumb { background: #cdd6e0; border-radius: 5px; }
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">🏪</div>
+    <span>Boutique ERP</span>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <div class="nav-item"><a href="{% url 'dashboard:index' %}" {% if request.resolver_match.app_name == 'dashboard' %}class="active"{% endif %}><i class="bi bi-grid-1x2-fill"></i> Tableau de bord</a></div>
+
+    <div class="nav-section">Commerce</div>
+    <div class="nav-item"><a href="{% url 'ventes:liste' %}" {% if request.resolver_match.app_name == 'ventes' %}class="active"{% endif %}><i class="bi bi-cart-check-fill"></i> Ventes</a></div>
+    <div class="nav-item"><a href="{% url 'achats:liste' %}" {% if request.resolver_match.app_name == 'achats' %}class="active"{% endif %}><i class="bi bi-bag-plus-fill"></i> Achats</a></div>
+    <div class="nav-item"><a href="{% url 'factures:liste' %}" {% if request.resolver_match.app_name == 'factures' %}class="active"{% endif %}><i class="bi bi-receipt"></i> Factures</a></div>
+    <div class="nav-item"><a href="{% url 'caisse:caisse' %}" {% if request.resolver_match.app_name == 'caisse' %}class="active"{% endif %}><i class="bi bi-cash-coin"></i> Caisse</a></div>
+
+    <div class="nav-section">Catalogue</div>
+    <div class="nav-item"><a href="{% url 'produits:liste' %}" {% if request.resolver_match.app_name == 'produits' %}class="active"{% endif %}><i class="bi bi-box-seam-fill"></i> Produits</a></div>
+    <div class="nav-item"><a href="{% url 'stock:tableau' %}" {% if request.resolver_match.app_name == 'stock' %}class="active"{% endif %}><i class="bi bi-archive-fill"></i> Stock</a></div>
+
+    <div class="nav-section">Tiers</div>
+    <div class="nav-item"><a href="{% url 'clients:liste' %}" {% if request.resolver_match.app_name == 'clients' %}class="active"{% endif %}><i class="bi bi-people-fill"></i> Clients</a></div>
+    <div class="nav-item"><a href="{% url 'fournisseurs:liste' %}" {% if request.resolver_match.app_name == 'fournisseurs' %}class="active"{% endif %}><i class="bi bi-truck"></i> Fournisseurs</a></div>
+
+    <div class="nav-section">RH</div>
+    <div class="nav-item"><a href="{% url 'employes:liste' %}" {% if request.resolver_match.app_name == 'employes' %}class="active"{% endif %}><i class="bi bi-person-badge-fill"></i> Employés</a></div>
+    <div class="nav-item"><a href="{% url 'taches:kanban' %}" {% if request.resolver_match.app_name == 'taches' %}class="active"{% endif %}><i class="bi bi-kanban-fill"></i> Tâches</a></div>
+
+    <div class="nav-section">Analyse</div>
+    <div class="nav-item"><a href="{% url 'rapports:dashboard' %}" {% if request.resolver_match.app_name == 'rapports' %}class="active"{% endif %}><i class="bi bi-bar-chart-fill"></i> Rapports</a></div>
+    <div class="nav-item"><a href="{% url 'notifications:liste' %}"><i class="bi bi-bell-fill"></i> Notifications {% if notifications_count %}<span class="badge bg-danger ms-auto">{{notifications_count}}</span>{% endif %}</a></div>
+
+    <div class="nav-section">Système</div>
+    <div class="nav-item"><a href="{% url 'parametres:index' %}"><i class="bi bi-gear-fill"></i> Paramètres</a></div>
+  </div>
+  <div class="sidebar-footer">
+    <div style="color:rgba(255,255,255,.6)">Connecté: <strong style="color:#fff">{{ user.username }}</strong></div>
+  </div>
+</nav>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-title">{% block page_title %}Tableau de bord{% endblock %}</div>
+  <div class="topbar-actions">
+    {% if notifications_count %}
+    <a href="{% url 'notifications:liste' %}" class="notif-badge text-decoration-none">
+      <i class="bi bi-bell-fill topbar-icon"></i>
+      <span class="badge-count">{{notifications_count}}</span>
+    </a>
+    {% endif %}
+    <a href="{% url 'ventes:nouvelle' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Nouvelle vente</a>
+    <div class="dropdown">
+      <a class="topbar-icon" data-bs-toggle="dropdown"><i class="bi bi-person-circle"></i></a>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><span class="dropdown-item-text fw-bold">{{ user.get_full_name|default:user.username }}</span></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{% url 'parametres:index' %}"><i class="bi bi-gear me-2"></i>Paramètres</a></li>
+        <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Déconnexion</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main-content">
+  {% for message in messages %}
+  <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3" role="alert">
+    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</div>
+
+{% else %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

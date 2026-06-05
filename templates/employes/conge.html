@@ -1,0 +1,14 @@
+{% extends 'base/base.html' %}
+{% block title %}Demande congé{% endblock %}
+{% block page_title %}Demande de congé{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-6"><div class="card"><div class="card-body p-4">
+<form method="post">{% csrf_token %}
+  {% for field in form %}
+  <div class="mb-3"><label class="form-label">{{ field.label }}</label>{{ field }}</div>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Soumettre</button>
+  <a href="{% url 'employes:liste' %}" class="btn btn-outline-secondary ms-2">Annuler</a>
+</form>
+</div></div></div></div>
+{% endblock %}

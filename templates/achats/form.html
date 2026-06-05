@@ -1,0 +1,190 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Modifier commande {{ form.instance.numero }}
+    else %}
+        Nouvelle commande achat
+    {% endif %}
+{% endblock %}
+
+{% block page_title %}
+    {% if form.instance.pk %}
+        Commande d'achat n°{{ form.instance.numero }}
+    else %}
+        Nouvelle commande d'achat
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body p-4">
+        <form method="post" id="commandeForm">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <!-- Champs de la commande -->
+            <div class="row g-3 mb-4">
+                {% for field in form %}
+                <div class="col-md-4">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ field.errors|striptags }}
+                        </div>
+                    {% endif %}
+                    {% if field.help_text %}
+                        <div class="form-text text-muted small">{{ field.help_text }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Lignes de commande -->
+            <h6 class="fw-semibold mb-3">Lignes de commande</h6>
+            {{ formset.management_form }}
+            
+            {% if formset.non_form_errors %}
+                <div class="alert alert-danger">
+                    {{ formset.non_form_errors }}
+                </div>
+            {% endif %}
+            
+            <div class="table-responsive">
+                <table class="table table-bordered" id="lignesTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 45%">Produit</th>
+                            <th style="width: 20%">Quantité</th>
+                            <th style="width: 25%">Prix unitaire (FCFA)</th>
+                            <th style="width: 10%">Suppr.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lf in formset %}
+                        <tr class="ligne-form {% if lf.errors %}table-danger{% endif %}">
+                            {{ lf.id }}
+                            <td>
+                                {{ lf.produit }}
+                                {% if lf.produit.errors %}
+                                    <div class="text-danger small mt-1">{{ lf.produit.errors|striptags }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ lf.quantite }}
+                                {% if lf.quantite.errors %}
+                                    <div class="text-danger small mt-1">{{ lf.quantite.errors|striptags }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ lf.prix_unitaire }}
+                                {% if lf.prix_unitaire.errors %}
+                                    <div class="text-danger small mt-1">{{ lf.prix_unitaire.errors|striptags }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle text-center">
+                                {% if lf.instance.pk %}
+                                    {{ lf.DELETE }}
+                                else %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-row" {% if forloop.counter <= formset.extra %}disabled{% endif %}>
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Boutons -->
+            <div class="mt-4">
+                <button type="button" class="btn btn-secondary" id="addLigneBtn">
+                    <i class="bi bi-plus-circle"></i> Ajouter une ligne
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Enregistrer
+                </button>
+                <a href="{% url 'achats:liste' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript pour gérer dynamiquement les lignes -->
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addButton = document.getElementById('addLigneBtn');
+        const tableBody = document.querySelector('#lignesTable tbody');
+        const totalForms = document.getElementById('id_lignes-TOTAL_FORMS');
+        
+        // Fonction pour ajouter une nouvelle ligne
+        addButton.addEventListener('click', function() {
+            const formCount = parseInt(totalForms.value);
+            const newForm = tableBody.children[formCount - 1].cloneNode(true);
+            
+            // Nettoyer les champs
+            newForm.querySelectorAll('input, select').forEach(field => {
+                field.value = '';
+                if (field.type === 'checkbox') field.checked = false;
+                // Mettre à jour les IDs
+                const name = field.name.replace(/-\d+-/, `-${formCount}-`);
+                const id = field.id.replace(/-\d+-/, `-${formCount}-`);
+                field.name = name;
+                field.id = id;
+            });
+            
+            // Nettoyer les erreurs
+            newForm.classList.remove('table-danger');
+            newForm.querySelectorAll('.text-danger').forEach(el => el.remove());
+            
+            tableBody.appendChild(newForm);
+            totalForms.value = formCount + 1;
+        });
+        
+        // Suppression dynamique (optionnel)
+        document.querySelectorAll('.remove-row').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('Supprimer cette ligne ?')) {
+                    const row = this.closest('tr');
+                    if (row.querySelector('input[type="checkbox"][name*="DELETE"]')) {
+                        // Marquer pour suppression
+                        row.querySelector('input[type="checkbox"][name*="DELETE"]').checked = true;
+                        row.style.display = 'none';
+                    } else if (row.parentElement.children.length > 1) {
+                        row.remove();
+                        const formCount = parseInt(totalForms.value);
+                        totalForms.value = formCount - 1;
+                    }
+                }
+            });
+        });
+        
+        // Calcul automatique du total ligne (optionnel)
+        function updateRowTotal(row) {
+            const qte = row.querySelector('input[name*="quantite"]')?.value || 0;
+            const prix = row.querySelector('input[name*="prix_unitaire"]')?.value || 0;
+            const total = qte * prix;
+            const totalSpan = row.querySelector('.total-ligne');
+            if (totalSpan) totalSpan.textContent = total.toLocaleString();
+        }
+        
+        document.querySelectorAll('input[name*="quantite"], input[name*="prix_unitaire"]').forEach(input => {
+            input.addEventListener('input', function() {
+                updateRowTotal(this.closest('tr'));
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}
