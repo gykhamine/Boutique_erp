@@ -1,0 +1,6 @@
+from django.contrib import admin
+from .models import Facture
+
+@admin.register(Facture)
+class FactureAdmin(admin.ModelAdmin):
+    list_display = ['numero', 'vente', 'date_emission', 'statut']
